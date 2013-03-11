@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <signal.h>
 #include <pcap.h>
+#include <stdlib.h>
 
 pcap_t *pcap_handle;
 
@@ -15,8 +16,62 @@ void exit_signal(int id){
     exit (0);
 }
 
+/*
+void bssid_found(unsigned char *bssid){
+    printf("Found a MAC address: %hhx:%hhx:%hhx:%hhx:%hhx:%hhx\n");
+}
+*/
+
 void process_packet(u_char* useless, const struct pcap_pkthdr* header, const u_char* packet ){
-    printf("Pacchetto lungo %d ricevuto\n",header->len); 
+    unsigned char bssid[6];
+
+    //printf("Packet with length %d received con %hhx:%hhx\n", header->len,packet[18],packet[19]);
+    /* First 18 bytes are radiotap header. We don't care about that*/ 
+    /* The byte after the radiotap header is the 802.11 type or subtype */
+    /* We have the station address on:
+      pkg of type 0x08 (beacons)
+       or of type 0x04 (probe request)
+       or of type 0x24 (null function)
+       or of type 0x05 (probe response)
+       or of type 0x28 (QoS)
+     */
+    if (header->len > 18){
+        switch (packet[18]){
+        
+        case 0x40: //0x04
+        printf("Probe request!\n");
+        break;
+
+        case 0x50: //0x05
+        printf("Probe response!\n");
+        break;
+        
+        case 0x80: //0x08
+        printf("Beacon!\n");
+        break;
+
+        case 0x48: //0x24
+        printf("Null function!\n");
+        break;
+
+        case 0x88: //0x28
+        printf("QoS!\n");
+        break;
+
+        case 0xd4: //0x1d
+        printf("ACK!\n");
+        break;
+
+        case 0xc4: //0x1c
+        printf("Clear to send!\n");
+        break;
+
+        default:
+        break;        
+
+        }
+    }
+    
 }
 
 int main(){
