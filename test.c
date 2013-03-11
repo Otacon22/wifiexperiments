@@ -1,4 +1,3 @@
-
 #include <stdio.h>
 #include <signal.h>
 #include <pcap.h>
@@ -29,8 +28,10 @@ void bssid_found(const u_char *bssid){
 }
 
 
-void process_packet(u_char* useless, const struct pcap_pkthdr* header, const u_char* packet ){
-    unsigned char bssid[6];
+void process_packet(u_char* useless, 
+		    const struct pcap_pkthdr* header, 
+		    const u_char* packet ){
+  unsigned char bssid[6];
 
     //printf("Packet with length %d received con %hhx:%hhx\n", header->len,packet[18],packet[19]);
     /* First 18 bytes are radiotap header. We don't care about that*/ 
@@ -77,6 +78,8 @@ int main(){
     char error_buffer[100];
     int status = 0;
 
+    char *errorstring ;
+
     signal(SIGINT, exit_signal); /* Ctrl-C */
     signal(SIGQUIT, exit_signal); /* Ctrl-\ */
 
@@ -103,6 +106,9 @@ int main(){
     status = pcap_activate(pcap_handle);
     if (status != 0){
         printf("Error while activating pcap number %d\n", status);
+	
+	errorstring = pcap_geterr(pcap_handle) ;
+	fprintf(stderr, "Error: %s\n", errorstring) ;
     }
 
     pcap_loop(pcap_handle, -1, process_packet, NULL);
