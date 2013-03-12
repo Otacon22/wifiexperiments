@@ -9,7 +9,6 @@ const u_char broadcastaddr[6] = { 0xff, 0xff, 0xff, 0xff, 0xff, 0xff };
 
 pcap_t *pcap_handle;
 
-
 void exit_signal(int id)
 {
     printf("Exit signal\n");
@@ -79,11 +78,16 @@ void process_packet(u_char * useless, const struct pcap_pkthdr *header,
 
 }
 
+void dump_pcap_error(pcap_t *pcap_handle) 
+{
+	fprintf(stderr, "Error: %s\n", pcap_geterr(pcap_handle));
+
+}
+
 int main(int argc, char **argv)
 {
     char error_buffer[100];
     int status = 0;
-    char *errorstring;
 
     signal(SIGINT, exit_signal);	/* Ctrl-C */
     signal(SIGQUIT, exit_signal);	/* Ctrl-\ */
@@ -96,24 +100,31 @@ int main(int argc, char **argv)
 
     status = pcap_set_rfmon(pcap_handle, 1);
     if (status != 0) {
-	fprintf(stderr, "Error while opening monitor mode\n");
+	dump_pcap_error(pcap_handle) ;
+	//fprintf(stderr, "Error while opening monitor mode\n");
     }
 
     status = pcap_set_promisc(pcap_handle, 0);
     if (status != 0) {
-	fprintf(stderr, "Error while setting no-promisc\n");
+	//fprintf(stderr, "Error while setting no-promisc\n");
+	dump_pcap_error(pcap_handle) ;
     }
 
     status = pcap_set_timeout(pcap_handle, 0);
     if (status != 0) {
-	fprintf(stderr, "Error while setting timeout on pcap\n");
+	//fprintf(stderr, "Error while setting timeout on pcap\n");
+	dump_pcap_error(pcap_handle) ;
     }
 
     status = pcap_activate(pcap_handle);
     if (status != 0) {
+	dump_pcap_error(pcap_handle) ;
+	
+	/* 
 	fprintf(stderr, "Error while activating pcap number %d\n", status);
 	errorstring = pcap_geterr(pcap_handle);
 	fprintf(stderr, "Error: %s\n", errorstring);
+	*/
     }
 
     pcap_loop(pcap_handle, -1, process_packet, NULL);
