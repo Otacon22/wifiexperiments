@@ -23,8 +23,8 @@ void exit_signal(int id){
 
 void bssid_found(const u_char *bssid, int8_t power){
     if(strncmp(bssid, broadcastaddr, 6) != 0)
-    printf("%02hhx:%02hhx:%02hhx:%02hhx:%02hhx:%02hhx Power:%d\n",
-            bssid[0],bssid[1],bssid[2],bssid[3],bssid[4],bssid[5],power);
+    printf("%02hhx:%02hhx:%02hhx:%02hhx:%02hhx:%02hhx\n",
+            bssid[0],bssid[1],bssid[2],bssid[3],bssid[4],bssid[5]);
     
 }
 
