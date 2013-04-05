@@ -1,7 +1,7 @@
-all: test
+all: witest
 
-test: test.c
-	$(CC) -o $@ $< -lpcap
+witest: witest.c
+	$(CC) -o $@ $< -lpcap $(CFLAGS)
 
 clean:
-	rm -f test.o test
+	rm -f witest.o witest
