@@ -20,11 +20,11 @@ void exit_signal(int id)
 }
 
 
-void bssid_found(const u_char * bssid, int8_t power)
+void bssid_found(const u_char * bssid, int8_t power, char *type)
 {
     if (strncmp(bssid, broadcastaddr, 6) != 0)
-	printf("%02hhx:%02hhx:%02hhx:%02hhx:%02hhx:%02hhx\n",
-	       bssid[0], bssid[1], bssid[2], bssid[3], bssid[4], bssid[5]);
+	printf("%02hhx:%02hhx:%02hhx:%02hhx:%02hhx:%02hhx Power:%d Type:%s\n",
+	       bssid[0], bssid[1], bssid[2], bssid[3], bssid[4], bssid[5], power, type);
 
 }
 
@@ -34,6 +34,7 @@ void process_packet(u_char * useless, const struct pcap_pkthdr *header,
 {
     unsigned char bssid[6];
     int8_t power;
+    char *type;
 
     //printf("Packet with length %d received con %hhx:%hhx\n", header->len,packet[18],packet[19]);
     /* First 18 bytes are radiotap header. We don't care about that */
@@ -52,21 +53,56 @@ void process_packet(u_char * useless, const struct pcap_pkthdr *header,
 	switch (packet[18]) {
 
 	case 0x40:		//destination,source,bss
+            if (header->len >= 40) {
+                type = "Probe request";
+                bssid_found(packet + 22, power, type);
+                bssid_found(packet + 28, power, type);
+                bssid_found(packet + 34, power, type);
+            }
+            break;
 	case 0x50:		//destination,source,bss
+            if (header->len >= 40) {
+                type = "Probe response";
+                bssid_found(packet + 22, power, type);
+                bssid_found(packet + 28, power, type);
+                bssid_found(packet + 34, power, type);
+            }
+            break;
 	case 0x80:		//destination,source,bss 
+            if (header->len >= 40) {
+                type = "Beacon";
+                bssid_found(packet + 22, power, type);
+                bssid_found(packet + 28, power, type);
+                bssid_found(packet + 34, power, type);
+            }
+            break;
 	case 0x48:		//bss,source,destination
+            if (header->len >= 40) {
+                type = "Null function";
+                bssid_found(packet + 22, power, type);
+                bssid_found(packet + 28, power, type);
+                bssid_found(packet + 34, power, type);
+            }
+            break;
 	case 0x88:		//bss,source,destination
 	    if (header->len >= 40) {
-		bssid_found(packet + 22, power);
-		bssid_found(packet + 28, power);
-		bssid_found(packet + 34, power);
+                type = "QoS";
+		bssid_found(packet + 22, power, type);
+		bssid_found(packet + 28, power, type);
+		bssid_found(packet + 34, power, type);
 	    }
 	    break;
 
 	case 0xd4:		//destination
+            if (header->len == 28) {
+                type = "ACK!";
+                bssid_found(packet + 22, power, type);
+            }
+            break;
 	case 0xc4:		//destination
 	    if (header->len == 28) {
-		bssid_found(packet + 22, power);
+                type = "Clear to send";
+		bssid_found(packet + 22, power, type);
 	    }
 	    break;
 
