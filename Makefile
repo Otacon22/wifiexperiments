@@ -1,3 +1,5 @@
+CFLAGS=-O2
+
 all: witest
 
 witest: witest.c
